@@ -122,9 +122,11 @@ HRESULT ObjectManagerProjection::DoGetDirectoryEnumerationCallback(const PRJ_CAL
 		PRJ_FILE_BASIC_INFO itemInfo{};
 		auto& item = info.Objects[info.Index];
 		itemInfo.IsDirectory = item.TypeName == L"Directory";
-		itemInfo.FileSize = itemInfo.IsDirectory ? 0 : GetObjectSize((std::wstring(L"\\") + callbackData->FilePathName + L"\\" + item.Name).c_str(), item);
+		itemInfo.FileSize = itemInfo.IsDirectory ? 0 : GetObjectSize((callbackData->FilePathName + std::wstring(L"\\") + item.Name).c_str(), item);
 		
-		if (FAILED(::PrjFillDirEntryBuffer(item.Name.c_str(), &itemInfo, dirEntryBufferHandle)))
+		if (FAILED(::PrjFillDirEntryBuffer(
+			(itemInfo.IsDirectory ? item.Name : (item.Name + L"." + item.TypeName)).c_str(), 
+			&itemInfo, dirEntryBufferHandle)))
 			break;
 		info.Index++;
 		if (callbackData->Flags & PRJ_CB_DATA_FLAG_ENUM_RETURN_SINGLE_ENTRY)
@@ -174,8 +176,6 @@ std::wstring ObjectManagerProjection::GetObjectData(PCWSTR fullname, ObjectNameA
 	std::wstring target;
 	if (info.TypeName == L"SymbolicLink") {
 		target = ObjectManager::GetSymbolicLinkTarget(fullname);
-		if (target.empty())
-			DebugBreak();
 	}
 	auto result = std::format(L"Name: {}\nType: {}\n", info.Name, info.TypeName);
 	if (!target.empty())

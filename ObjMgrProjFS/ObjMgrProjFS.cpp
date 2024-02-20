@@ -26,7 +26,7 @@ int wmain(int argc, const wchar_t* argv[]) {
 	if (auto hr = omp.Start(); hr != S_OK)
 		return Error(hr);
 
-	printf("Press ENTER to stop virtualizing...\n");
+	printf("Virtualizing at %ws. Press ENTER to stop virtualizing...\n", argv[1]);
 	char buffer[3];
 	gets_s(buffer);
 

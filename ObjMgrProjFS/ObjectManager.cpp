@@ -79,7 +79,8 @@ std::vector<ObjectNameAndType> ObjectManager::EnumDirectoryObjects(PCWSTR path, 
 			data.TypeName = std::wstring(p.TypeName.Buffer, p.TypeName.Length / sizeof(WCHAR));
 			if(!objectName)
 				objects.push_back(std::move(data));
-			if (objectName && _wcsicmp(object.c_str(), data.Name.c_str()) == 0) {
+			if (objectName && _wcsicmp(object.c_str(), data.Name.c_str()) == 0 || 
+				_wcsicmp(object.c_str(), (data.Name + L"." + data.TypeName).c_str()) == 0) {
 				objects.push_back(std::move(data));
 				break;
 			}
