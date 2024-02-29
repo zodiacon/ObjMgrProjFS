@@ -38,7 +38,8 @@ extern "C" {
 
 #pragma comment(lib, "ntdll")
 
-std::vector<ObjectNameAndType> ObjectManager::EnumDirectoryObjects(PCWSTR path, PCWSTR objectName, std::function<bool(PCWSTR)> compare) {
+std::vector<ObjectNameAndType> ObjectManager::EnumDirectoryObjects(PCWSTR path, 
+	PCWSTR objectName, std::function<bool(PCWSTR)> compare) {
 	std::vector<ObjectNameAndType> objects;
 	HANDLE hDirectory;
 	OBJECT_ATTRIBUTES attr;

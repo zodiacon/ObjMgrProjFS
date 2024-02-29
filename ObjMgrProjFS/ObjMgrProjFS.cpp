@@ -22,7 +22,6 @@ int wmain(int argc, const wchar_t* argv[]) {
 	if (auto hr = omp.Init(argv[1]); hr != S_OK)
 		return Error(hr);
 
-
 	if (auto hr = omp.Start(); hr != S_OK)
 		return Error(hr);
 

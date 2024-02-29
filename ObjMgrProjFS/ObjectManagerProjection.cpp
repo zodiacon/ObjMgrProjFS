@@ -17,7 +17,8 @@ HRESULT ObjectManagerProjection::Init(PCWSTR root) {
 		//
 		// get instance ID (if any)
 		//
-		auto hFile = ::CreateFile(instanceFile.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, 0, nullptr);
+		auto hFile = ::CreateFile(instanceFile.c_str(), GENERIC_READ, 
+			FILE_SHARE_READ, nullptr, OPEN_EXISTING, 0, nullptr);
 		if (hFile != INVALID_HANDLE_VALUE && ::GetFileSize(hFile, nullptr) == sizeof(GUID)) {
 			DWORD ret;
 			::ReadFile(hFile, &instanceId, sizeof(instanceId), &ret, nullptr);
@@ -43,7 +44,6 @@ HRESULT ObjectManagerProjection::Init(PCWSTR root) {
 
 	m_RootDir = root;
 	return hr;
-
 }
 
 HRESULT ObjectManagerProjection::Start() {
@@ -54,8 +54,7 @@ HRESULT ObjectManagerProjection::Start() {
 	cb.GetPlaceholderInfoCallback = GetPlaceholderInformationCallback;
 	cb.GetFileDataCallback = GetFileDataCallback;
 
-	PRJ_STARTVIRTUALIZING_OPTIONS options{};
-	auto hr = ::PrjStartVirtualizing(m_RootDir.c_str(), &cb, this, &options, &m_VirtContext);
+	auto hr = ::PrjStartVirtualizing(m_RootDir.c_str(), &cb, this, nullptr, &m_VirtContext);
 	return hr;
 }
 
@@ -96,7 +95,8 @@ HRESULT ObjectManagerProjection::DoStartDirectoryEnumerationCallback(const PRJ_C
 	return S_OK;
 }
 
-HRESULT ObjectManagerProjection::DoGetDirectoryEnumerationCallback(const PRJ_CALLBACK_DATA* callbackData, const GUID* enumerationId, 
+HRESULT ObjectManagerProjection::DoGetDirectoryEnumerationCallback(
+	const PRJ_CALLBACK_DATA* callbackData, const GUID* enumerationId, 
 	PCWSTR searchExpression, PRJ_DIR_ENTRY_BUFFER_HANDLE dirEntryBufferHandle) {
 
 	auto it = m_Enumerations.find(*enumerationId); 
@@ -111,7 +111,9 @@ HRESULT ObjectManagerProjection::DoGetDirectoryEnumerationCallback(const PRJ_CAL
 			return ::PrjFileNameMatch(name, searchExpression);
 			};
 		info.Objects = ObjectManager::EnumDirectoryObjects(callbackData->FilePathName, nullptr, compare);
-		std::ranges::sort(info.Objects, [](auto const& item1, auto const& item2) { return ::PrjFileNameCompare(item1.Name.c_str(), item2.Name.c_str()) < 0; });
+		std::ranges::sort(info.Objects, [](auto const& item1, auto const& item2) { 
+			return ::PrjFileNameCompare(item1.Name.c_str(), item2.Name.c_str()) < 0; 
+			});
 		info.Index = 0;
 	}
 
@@ -122,7 +124,8 @@ HRESULT ObjectManagerProjection::DoGetDirectoryEnumerationCallback(const PRJ_CAL
 		PRJ_FILE_BASIC_INFO itemInfo{};
 		auto& item = info.Objects[info.Index];
 		itemInfo.IsDirectory = item.TypeName == L"Directory";
-		itemInfo.FileSize = itemInfo.IsDirectory ? 0 : GetObjectSize((callbackData->FilePathName + std::wstring(L"\\") + item.Name).c_str(), item);
+		itemInfo.FileSize = itemInfo.IsDirectory ? 0 : 
+			GetObjectSize((callbackData->FilePathName + std::wstring(L"\\") + item.Name).c_str(), item);
 		
 		if (FAILED(::PrjFillDirEntryBuffer(
 			(itemInfo.IsDirectory ? item.Name : (item.Name + L"." + item.TypeName)).c_str(), 
